@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>teste de API</title>
+  <style>
+    html, body {
+      height: 100%;
+    }
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background-image: url('https://images.alphacoders.com/134/thumb-1920-1345108.png');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+    }
+
+    h1 {
+      color: #ffffff;
+      text-shadow: 2px 2px 4px rgba(250, 215, 255, 0.5);
+    }
+    h2 {
+      color: #ffffff;
+      text-shadow: 1px 1px 3px rgba(243, 168, 233, 0.5);
+    }
+    
+    div {
+      padding: 5px;
+    }
+
+    .container {
+      max-width: 600px;
+      text-align: center;
+      background: rgba(255, 162, 185, 0.8); /* Fundo semi-transparente */
+      padding: 30px;
+      border: 2px solid #ff569c;
+      border-radius: 40px;
+      box-shadow: 0 4px 6px rgba(255, 255, 255, 0.1);
+    }
+
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    input, button {
+      padding: 10px;
+      width: 100%;
+      max-width: 400px;
+      box-sizing: border-box;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+
+    button {
+      background-color: #89da94;
+      color: rgb(15, 2, 2);
+      cursor: pointer;
+      border: 2px solid #3b8353;
+      font-weight: bold;
+      font-size: 16px;
+      color: rgb(33, 109, 80);
+    }
+
+    button:hover {
+      background-color: #174e29;
+      color: white;
+    }
+
+    .response {
+      background: #ffedfa;
+      padding: 15px;
+      border: 1px solid #ffe7f8;
+      border-radius: 5px;
+      margin-top: 10px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>teste de API</h1>
+
+    <h2>Obter Data Atual</h2>
+    <input type="text" id="utcInput" placeholder="Digite o UTC ex: -5 ou utc=-5 (opcional)">
+    <button id="getCurrentDateBtn">Obter Data Atual</button>
+    <div id="currentDateResponse" class="response"></div>
+
+    <h2>Converter Data</h2>
+    <div class="input-group">
+      <input type="text" id="convertDateInput" placeholder="Ex: 2025-04-11 ou 1744413030205">
+      <input type="text" id="convertUtcInput" placeholder="Digite o UTC ex: -5 ou utc=-5">
+      <button id="convertDateBtn">Converter Data</button>
+    </div>
+    <div id="convertDateResponse" class="response" style="display: none;">
+      <span id="formattedConvertDate"></span>
+    </div>
+
+    <h2>Calcular Diferença Entre Datas</h2>
+    <div class="input-group">
+      <input type="text" id="date1Input" placeholder="Ex: 2025-04-11 ou 1744413030205">
+      <input type="text" id="date2Input" placeholder="Ex: 2023-03-15 ou 1678838400000">
+      <button id="calculateDiffBtn">Calcular Diferença</button>
+    </div>
+    <div id="dateDiffResponse" class="response" style="display: none;">
+      <span id="formattedDateDiff"></span>
+    </div>
+  </div>
+
+  <script>
+    // Obter Data Atual
+    document.getElementById('getCurrentDateBtn').addEventListener('click', async () => {
+      const utcInput = document.getElementById('utcInput').value.trim();
+      let utc = '';
+
+      if (utcInput) {
+        const match = utcInput.match(/^-?\d+$/); // Garante que o UTC seja um número válido
+        if (match) {
+          utc = `?utc=${match[0]}`;
+        }
+      }
+
+      try {
+        const response = await fetch(`/api${utc}`); // Envia o UTC como parte da query string
+        const data = await response.json();
+
+        const responseDiv = document.getElementById('currentDateResponse');
+        responseDiv.style.display = 'block';
+        responseDiv.textContent = `Data: ${data.date || 'N/A'}, Timestamp: ${data.unix || 'N/A'}`;
+      } catch (error) {
+        console.error('Erro ao obter a data atual:', error);
+      }
+    });
+
+    // Converter Data
+    document.getElementById('convertDateBtn').addEventListener('click', async () => {
+      const dateInput = document.getElementById('convertDateInput').value.trim();
+      const utcInput = document.getElementById('convertUtcInput').value.trim();
+      let utc = '';
+
+      if (utcInput) {
+        const match = utcInput.match(/^-?\d+$/); // Garante que o UTC seja um número válido
+        if (match) {
+          utc = `?utc=${match[0]}`;
+        }
+      }
+
+      try {
+        const response = await fetch(`/api/${dateInput}${utc}`); // Envia o UTC como parte da query string
+        const data = await response.json();
+
+        const responseDiv = document.getElementById('convertDateResponse');
+        const formattedDateSpan = document.getElementById('formattedConvertDate');
+        responseDiv.style.display = 'block';
+        formattedDateSpan.textContent = `Data: ${data.date || 'N/A'}, Timestamp: ${data.unix || 'N/A'}`;
+      } catch (error) {
+        console.error('Erro ao converter a data:', error);
+      }
+    });
+
+    // Calcular Diferença Entre Datas
+    document.getElementById('calculateDiffBtn').addEventListener('click', async () => {
+      const date1 = document.getElementById('date1Input').value.trim();
+      const date2 = document.getElementById('date2Input').value.trim();
+
+      try {
+        const response = await fetch(`/api/diff/${date1}/${date2}`);
+        const data = await response.json();
+
+        const responseDiv = document.getElementById('dateDiffResponse');
+        const formattedDiffSpan = document.getElementById('formattedDateDiff');
+        responseDiv.style.display = 'block';
+        formattedDiffSpan.textContent = `Diferença: ${data.difference || 'N/A'}`;
+      } catch (error) {
+        console.error('Erro ao calcular a diferença entre datas:', error);
+      }
+    });
+  </script>
+</body>
+</html>
